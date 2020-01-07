@@ -11,7 +11,13 @@ const StorageController = (function(){
 /*****************************************
     ITEM CONTROLLER
 *****************************************/
-const ItemController = (function(){
+
+const ItemController = (function(){ 
+
+    /*************************************
+        PRIVATE VARIABLES
+    *************************************/
+    
     // Item Constructor
     const Item = function(id, name, calories) {
         this.id = id;
@@ -21,24 +27,47 @@ const ItemController = (function(){
 
     // Data Structure / State
     const state = {
-        items: [
-            { id: 0, name: 'Steak Dinner', calories: 1200 },
-            { id: 1, name: 'Coffee', calories: 30 },
-            { id: 2, name: 'Tom Yum Soup', calories: 500 },
-        ],
+        items: [],
         currentItem: null,
         totalCalories: 0
     }
 
-    // Public Methods 
+    /*************************************
+        PRIVATE METHODS
+    *************************************/
+
+
+    function _addData(name, calories) {
+
+        let id;
+        if (state.items.length > 0) {
+            id = state.items[state.items.length - 1].id + 1
+        } else {
+            id = 0;
+        }
+
+        calories = parseInt(calories);
+
+        const newItem = new Item(id, name, calories);
+        state.items.push(newItem);
+
+        state.totalCalories + calories;
+        console.log(state.totalCalories, "RUNNING TOTAL");
+
+    }
+
+    /*************************************
+        PUBLIC METHODS
+    *************************************/
+
     return {
 
         logData: function() {
             return state;
         },
 
-        addData: function(item) {
-            state.items.push(item);
+        addData: function({name, calories}) {
+            _addData(name, calories);
         },
 
         getData: function() {
@@ -51,15 +80,27 @@ const ItemController = (function(){
 /*****************************************
     UI CONTROLLER
 *****************************************/
-const UiController = (function(){
-    const UISelectors = {
+
+const UiController = (function() {
+
+    /*************************************
+        PRIVATE VARIABLES
+    *************************************/
+
+    const _UISelectors = {
         itemList: '#items-ui',
         addBtn: '.add-btn',
         backBtn: '.back-btn',
+        itemName: '#item-name',
+        itemCalories: '#item-calories',
+        showMessage: '#show-message',
     }
     
-    // Private Method
-    function poulateDom(items) {
+    /*************************************
+        PRIVATE METHODS
+    *************************************/
+
+    function _setItemsToDom(items) {
         
         let html = '';
 
@@ -75,20 +116,65 @@ const UiController = (function(){
             console.log(item, "From Private");
         });
 
-        document.querySelector(UISelectors.itemList).innerHTML = html;
+        document.querySelector(_UISelectors.itemList).innerHTML = html;
 
     }
 
-    // Public Methods
-    return {
+    function _getItemsFromForm() {
 
-        showItems: function(items) {
-            // Calls Private Function
-            poulateDom(items);
+        const itemName =  document.querySelector(_UISelectors.itemName).value
+        const itemCalories = document.querySelector(_UISelectors.itemCalories).value
+
+        const data = { name: itemName, calories: itemCalories };
+
+        if ( data.name !== '' && data.calories !=='' ) {
+            return data;
+        } else { 
+            return { error: "Input can't be blank"}
+        }
+
+    }
+
+
+    /*************************************
+        PUBLIC METHODS
+    *************************************/
+
+    return {
+        // Get Items From Form
+        getItemsFromInput: function(items) {
+            return _getItemsFromForm();
+        },
+
+        // Reset Form Fields
+        resetFormFields: function() {
+            document.querySelector(_UISelectors.itemName).value = '';
+            document.querySelector(_UISelectors.itemCalories).value = '';
+        },
+
+        // Show Message
+        showMessage: function(message) {
+
+            let html = `
+                <p style="margin: 0; padding: 0.25rem 0.5rem; text-align: center;" class="red darken-1 white-text">${message}</p>
+            `;
+
+            const showMessage = document.querySelector(_UISelectors.showMessage);
+            showMessage.innerHTML = html;
+
+            setTimeout( () => {
+                showMessage.innerHTML = '';
+            }, 2000);
+
+        },
+
+        // Set Items To Dom
+        setItemsToDOM: function(items) {
+            _setItemsToDom(items);
         },
 
         getUISelectors: function() {
-            return UISelectors;
+            return _UISelectors;
         }
     }
 })();
@@ -96,24 +182,57 @@ const UiController = (function(){
 /*****************************************
     APP CONTROLLER
 *****************************************/
-const AppController = (function(ItemController, UiController){
+
+const AppController = (function(ItemController, UiController) {
+
+    /*************************************
+        PRIVATE METHODS
+    *************************************/
+
     // Load Event Listeners
-        function loadEventListener() {
-        // Get UI selectors from UiController
-        const UISelectors = UiController.getUISelectors();
+    function _loadEventListener() {
 
-        // Add items event
-        document.querySelector(UISelectors.addBtn).addEventListener( 'click', () => {
-            alert('Add Button Clicked');
-        });
+    // Get UI selectors from UiController
+    const UISelectors = UiController.getUISelectors();
 
-        // Back button event
+    // Add items event
+    document.querySelector(UISelectors.addBtn).addEventListener( 'click', (e) => {
+        e.preventDefault();
+        
+        // Get Input From Ui Controller
+        const items = UiController.getItemsFromInput();
+        console.log(items);
+
+        if ( items.error ) {
+            // alert(items.error);
+            UiController.showMessage(items.error);
+        } else {
+            // Add Data To State
+            ItemController.addData(items);
+
+            // Get Items from Items Conroller
+            const state = ItemController.getData();
+
+            // Populate List via UI Controller
+            UiController.setItemsToDOM(state);
+
+            // Reset Input
+            UiController.resetFormFields();
+        }
+        
+        
+    });
+
+        /* Back button event
         document.querySelector(UISelectors.backBtn).addEventListener( 'click', () => {
             alert('Back Button Clicked');
-        });
+        }); */
     }
 
-    // Public Methods
+    /*************************************
+        PUBLIC METHODS
+    *************************************/
+
     return {
         init: function() {
 
@@ -121,14 +240,15 @@ const AppController = (function(ItemController, UiController){
             const items = ItemController.getData();
 
             // Populate List via UI Controller
-            UiController.showItems(items);
+            UiController.setItemsToDOM(items);
 
             // Add event listener
-            loadEventListener();
+            _loadEventListener();
 
             console.log('App Initialized with ', items );
         }
     }
+
 })(ItemController, UiController);
 
 
@@ -137,5 +257,3 @@ const AppController = (function(ItemController, UiController){
 *****************************************/
 
 AppController.init();
-
-// { id: 3, name: 'Ice Cream', calories: 750 }
