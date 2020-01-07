@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>CalCount</title>
+
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js" defer></script>
+    
+</head>
+<body class="blue-grey darken-3" style="font-size: 1.8rem">
+    <nav class="blue-grey darken-4">
+        <div class="naw-wrapper">
+            <div class="container">
+                <a href="#" class="brand-logo left">CalCount</a>
+                <ul id="nav-mobile" class="hide-on-med-and-down  right">
+                    <li><a href="About.html" class="blue-grey-text lighten-5" style="font-size: 1.8rem">About</a></li>
+                    <li><a href="Contact.html" class="blue-grey-text lighten-5" style="font-size: 1.8rem">Contact</a></li>
+                    <li><a href="#" class="clear-btn btn blue-grey darken-3" style="font-size: 1.2rem">Clear All</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <br>
+    <div class="container">
+        <div class="card blue-grey-text">
+            <div class="card-content blue-grey lighten-5">
+                <span class="card-title">Add Meal / Food Item</span>
+                <form class="col">
+                    <div class="row">
+                        <div class="input-field col s6">
+                            <input type="text" placeholder="Add Item" id="item-name">
+                            <label for="item-name">Meal</label>
+                        </div>
+                        <div class="input-field col s6">
+                            <input type="number" placeholder="Add Calories" id="item-calories">
+                            <label for="item-calories">Calories</label>
+                        </div>
+                        <button class="add-btn btn blue darken-3 " style="display: flex;"><i class="fa fa-plus" style="margin-right: 10px;"></i>Add Meal</button>
+                        <!-- <button class="add-btn btn orange darken-3 " style="display: flex;"><i class="fa fa-pencil" style="margin-right: 10px;"></i>Update Meal</button>
+                        <button class="add-delete btn red darken-3 " style="display: flex;"><i class="fa fa-remove" style="margin-right: 10px;"></i>Delete Meal</button> -->
+                        <button class="add-back btn blue-grey darken-3 pull-right" style="display: flex;"><i class="fa fa-chevron-circle-left" style="margin-right: 10px;"></i>Back</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- Calori Count-->
+        <div class="card blue-grey-text">
+            <div class="card-content blue-grey lighten-5">
+                <h3 class="center-align">Total Calories: <span class="total-calories light-blue-text">0</span></h3>
+            </div>
+        </div>
+        <ul style="border: none" id="item-list" class="collection">
+            <li style="margin-bottom: 10px; border-radius: 2px;" id="item-0" class="collection-item blue-grey lighten-5 blue-grey-text">
+                <strong class="blue-grey-text">Steak Dinner</strong> <em class="light-blue-text" style="text-transform: uppercase; font-size: 1.4rem;">1200 Calories</em>
+                <a href="#" class="secondary-content">
+                    <i class="fa fa-pencil"></i>
+                </a>
+            </li>
+            <li style="margin-bottom: 10px; border-radius: 2px;" id="item-0" class="collection-item blue-grey lighten-5 blue-grey-text">
+                <strong class="blue-grey-text">Steak Dinner</strong> <em class="light-blue-text" style="text-transform: uppercase; font-size: 1.4rem;">1200 Calories</em>
+                <a href="#" class="secondary-content">
+                    <i class="fa fa-pencil"></i>
+                </a>
+            </li>
+            <li style="margin-bottom: 10px; border-radius: 2px;" id="item-0" class="collection-item blue-grey lighten-5 blue-grey-text">
+                <strong class="blue-grey-text">Steak Dinner</strong> <em class="light-blue-text" style="text-transform: uppercase; font-size: 1.4rem;">1200 Calories</em>
+                <a href="#" class="secondary-content">
+                    <i class="fa fa-pencil"></i>
+                </a>
+            </li>
+        </ul>
+        
+    </div>
+</body>
+</html>
