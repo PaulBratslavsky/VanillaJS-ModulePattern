@@ -5,7 +5,74 @@ console.log('App.js');
     STORAGE CONTROLLER
 *****************************************/
 const StorageController = (function(){
-    
+    return {
+        clearLocalStorage: function() {
+            localStorage.removeItem('items');
+        },
+
+        updateItemInLocalStorage: function(selectedItem) {
+
+            const originalItems = JSON.parse(localStorage.getItem('items'));
+
+            const updatedItems = originalItems.map( item => {
+                if ( selectedItem.id === item.id ) {
+                    console.log(item, 'item to update');
+                    return { ...selectedItem }
+                } else {
+                    return item;
+                }
+            });
+
+            localStorage.setItem('items', JSON.stringify(updatedItems));
+        },
+
+        deleteItemFromLocalStorage: function(selectedItem) {
+
+            const originalItems = JSON.parse(localStorage.getItem('items'));
+
+            const updatedItems = originalItems.filter( item => {
+                return selectedItem.id !== item.id ;
+            });
+
+            localStorage.setItem('items', JSON.stringify(updatedItems));
+        },
+
+        getItemsFromLocalStorage: function() {
+            
+            if ( localStorage.getItem('items') !== null ) {
+                return JSON.parse(localStorage.getItem('items'));
+            }  else {
+                return []
+            }
+        },
+
+        addToLocalStorage: function(item) {
+            let items = [];
+
+            // Check if any items in Local Storage
+            if ( localStorage.getItem('items') === null ) {
+                
+                items = [];
+                // Push new Item
+                items.push(item);
+
+                // Save to storage
+                localStorage.setItem('items', JSON.stringify(items));
+
+            } else {
+                items = JSON.parse(localStorage.getItem('items'));
+
+                console.log(items, "ITEMS ARRAY")
+                // Add new item 
+                items.push(item);
+
+                // Save to storage
+                localStorage.setItem('items', JSON.stringify(items));
+            }
+
+            console.log(items, "ADD ITEMS TO LOCAL STORAGE");
+        }
+    }
 })();
 
 /*****************************************
@@ -25,15 +92,12 @@ const ItemController = (function(){
         this.calories = calories;
     }
 
-    // Initial State
-    const _INITIAL_STATE = {
+   
+    // Data Structure / State
+    let _state = {
         items: [],
         currentItem: null,
-        totalCalories: 0
-    }
-
-    // Data Structure / State
-    const _state = _INITIAL_STATE;
+    };
 
     /*************************************
         PRIVATE METHODS
@@ -56,10 +120,11 @@ const ItemController = (function(){
         const newItem = new Item(id, name, calories);
         _state.items.push(newItem);
 
+        return newItem;
+
     }
 
     function _updateData({id, name, calories}) {
-        console.log(_state.items, "1: STATE BEFORE UPDATE")
         
         calories = parseInt(calories);
 
@@ -72,8 +137,6 @@ const ItemController = (function(){
             }
         });
 
-        console.log(newState, "2: STATE AFTER UPDATE");
-        
         _state.items = newState;
 
     }
@@ -83,19 +146,13 @@ const ItemController = (function(){
         _state.items = newState;
     }
 
-    function _totalCallorieCount() {
-        
-        let callCount = 0;
-
-        _state.items.forEach( item => callCount += item.calories);
-
-        _state.totalCalories = callCount;
-    }
-
     function _resetState() {
-        const newState = _INITIAL_STATE;
-        _state = newState;
+        _state = {
+            items: [],
+            currentItem: null,
+        }
     }
+
 
 
     /*************************************
@@ -103,6 +160,10 @@ const ItemController = (function(){
     *************************************/
 
     return {
+        setInitialStateOnReload: function(items) {
+            _state.items = items;
+            console.log('initial state set');
+        },
 
         setCurrentItem: function(itemId) {
             const filtereArray = _state.items.filter( item => parseInt(itemId) === item.id );
@@ -115,11 +176,10 @@ const ItemController = (function(){
         },
 
         addItems: function({name, calories}) {
-            _addData(name, calories);
+            return _addData(name, calories);
         },
 
         removeItem: function({id, calories}) {
-            console.log(id, calories, "ITEMS TO REMOVE");
             _removeData(id);
         },
 
@@ -129,12 +189,23 @@ const ItemController = (function(){
         },
 
         getCalorieCount: function() {
-            _totalCallorieCount();
-            return _state.totalCalories;
+            let callCount = 0;
+
+            if ( _state.items !== [] ) {
+                _state.items.forEach( item => { 
+                    callCount += parseInt(item.calories) });
+            }
+            
+            return callCount;
         },
 
         getCurrentItem: function() {
             return _state.currentItem;
+        },
+
+        clearAllState: function() {
+            console.log('step 1');
+            _resetState();
         }
     }
 
@@ -152,10 +223,12 @@ const UiController = (function() {
 
     const _UISelectors = {
         itemList: '#items-ui',
+        listItems: '#items-ui li',
         addBtn: '.add-btn',
         updateBtn: '.update-btn',
         deleteBtn: '.delete-btn',
         backBtn: '.back-btn',
+        clearAll: '.clear-btn',
         itemName: '#item-name',
         itemCalories: '#item-calories',
         showMessage: '#show-message',
@@ -205,7 +278,9 @@ const UiController = (function() {
         const totalCalories = document.querySelector(_UISelectors.totalCalories);
 
         // Get Calories State
+
         const currentCount = ItemController.getCalorieCount();
+        console.log(typeof(currentCount));
 
         // Update Dom
         totalCalories.textContent = currentCount.toString();
@@ -301,7 +376,7 @@ const UiController = (function() {
     APP CONTROLLER
 *****************************************/
 
-const AppController = (function(ItemController, UiController) {
+const AppController = (function(ItemController, UiController, StorageController) {
 
     /*************************************
         PRIVATE METHODS
@@ -333,11 +408,38 @@ const AppController = (function(ItemController, UiController) {
 
     // DELETE ITEM EVENT
     document.querySelector(UISelectors.deleteBtn).addEventListener( 'click', deleteItemSelected );
+
+    // DELETE ALL ITEM EVENT
+    document.querySelector(UISelectors.clearAll).addEventListener( 'click', clearAllItems );
 }
 
     /*************************************
         FUNCTIONS
     *************************************/ 
+    function clearAllItems() {
+
+        // Update state
+        ItemController.clearAllState();
+
+        // Clear All Local Storage
+        StorageController.clearLocalStorage();
+
+        // Get New Data State
+        const state = ItemController.getItems();
+
+        // Update Items In Dom with new State
+        UiController.setItemsToDOM(state);
+
+        // Update Total Callories Count UI
+        UiController.updateCalorieCountUI();
+
+        // Reset Edit State
+        // UiController.resetEditState();
+
+        // Reset Input
+        UiController.resetFormFields();
+    }
+
     function updateItemSelected(e) {
 
         // Get Selected Item Data From State
@@ -348,10 +450,8 @@ const AppController = (function(ItemController, UiController) {
         
         // Get Input From Ui Controller
         const items = UiController.getItemsFromInput();
-        console.log(items, "ITEMS TO UPDATE");
 
         const newObject = { id: itemToUpdate, ...items }
-        console.log(newObject);
 
         if ( items.error ) {
 
@@ -362,6 +462,9 @@ const AppController = (function(ItemController, UiController) {
 
             // Update Data State
             ItemController.updateItem(newObject);
+
+            // Update Local Storage
+            StorageController.updateItemInLocalStorage(newObject);
 
             // Get New Data State
             const state = ItemController.getItems();
@@ -374,10 +477,11 @@ const AppController = (function(ItemController, UiController) {
 
             // Reset Edit State
             UiController.resetEditState();
+
+            
             
         }
 
-        console.log('Update');
     }
 
     function deleteItemSelected() {
@@ -386,6 +490,9 @@ const AppController = (function(ItemController, UiController) {
         
         // Remove Items From State
         ItemController.removeItem(currentItemState);
+
+        // Delete from local storage
+        StorageController.deleteItemFromLocalStorage(currentItemState);
 
         // Get New Data State
         const state = ItemController.getItems();
@@ -410,8 +517,6 @@ const AppController = (function(ItemController, UiController) {
             const selectedItem = e.target.parentNode.parentNode.getAttribute('key');
             ItemController.setCurrentItem(selectedItem);
 
-            console.log(selectedItem, 'Edit Clicked');
-
             // Get Selected Item Data From State
             const currentItemState = ItemController.getCurrentItem();
             
@@ -425,14 +530,14 @@ const AppController = (function(ItemController, UiController) {
         
         // Get Input From Ui Controller
         const items = UiController.getItemsFromInput();
-        // console.log(items);
 
         if ( items.error ) {
             // alert(items.error);
             UiController.showMessage(items.error);
         } else {
             // Update Data State
-            ItemController.addItems(items);
+            const newItem = ItemController.addItems(items);
+            console.log(newItem);
 
             // Get New Data State
             const state = ItemController.getItems();
@@ -442,6 +547,9 @@ const AppController = (function(ItemController, UiController) {
 
             // Update Total Callories Count UI
             UiController.updateCalorieCountUI();
+
+            // ADD TO LOCAL STORAGE
+            StorageController.addToLocalStorage(newItem);
 
             // Reset Input
             UiController.resetFormFields();
@@ -460,10 +568,16 @@ const AppController = (function(ItemController, UiController) {
             UiController.resetEditState();
 
             // Get Items from Items Conroller
-            const items = ItemController.getItems();
+            // const items = ItemController.getItems();
+
+            // Get Items from Local Storage
+            const itemsLocal = StorageController.getItemsFromLocalStorage();
+            console.log(itemsLocal, "FROM LOCAL STORAGE");
+
+            ItemController.setInitialStateOnReload(itemsLocal);
 
             // Populate List via UI Controller
-            UiController.setItemsToDOM(items);
+            UiController.setItemsToDOM(itemsLocal);
 
             // Populate Total Count via UI Controller
             UiController.updateCalorieCountUI();
@@ -471,11 +585,11 @@ const AppController = (function(ItemController, UiController) {
             // Add event listener
             _loadEventListener();
 
-            console.log('App Initialized with ', items );
+            console.log('App Initialized with ', itemsLocal );
         }
     }
 
-})(ItemController, UiController);
+})(ItemController, UiController, StorageController);
 
 
 /*****************************************
